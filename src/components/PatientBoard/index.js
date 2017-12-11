@@ -30,7 +30,7 @@ import RaisedButton from 'material-ui/RaisedButton';
             "hdl": 2.6,
             "triglyceride": 3.7,
             "risk_heart_disease": "L",
-            "primaryDoctor": {
+            "primaryDoctorSeq": {
                 "seq": 2,
                 "annual_salary": 70000,
                 "specialty": "xxxxxxx",
@@ -58,11 +58,11 @@ const PatientBoard = (props) => {
         tel,
         blood_type,
         blood_surger,
-        idl,
+        ldl,
         hdl,
         triglyceride,
         risk_heart_disease,
-        primaryDoctor
+        primaryDoctorSeq
     } = props.Data
     return (
         <Table>
@@ -89,7 +89,7 @@ const PatientBoard = (props) => {
                     <TableRowColumn>{address}</TableRowColumn>
                     <TableRowColumn>
                         <Link 
-                            to={`/${seq}`}
+                            to={`/patient/${seq}`}
                         >
                             <RaisedButton label="Detail" secondary={true} />
                         </Link>
@@ -101,6 +101,9 @@ const PatientBoard = (props) => {
 }
 
 export default PatientBoard;
+PatientBoard.defaultProps = {
+    primaryDoctorSeq: {}
+};
 
 const style = {
     margin: 12,

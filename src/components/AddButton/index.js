@@ -7,20 +7,6 @@ import { orange500, blue500 } from 'material-ui/styles/colors';
 /**
  * A modal dialog can only be closed by selecting one of the actions.
  */
-const styles = {
-  errorStyle: {
-    color: orange500,
-  },
-  underlineStyle: {
-    borderColor: orange500,
-  },
-  floatingLabelStyle: {
-    color: orange500,
-  },
-  floatingLabelFocusStyle: {
-    color: blue500,
-  },
-};
 export default class DialogExampleModal extends React.Component {
   constructor(prop) {
     super(prop)
@@ -39,6 +25,10 @@ export default class DialogExampleModal extends React.Component {
   }
 
   render() {
+    const {
+      btnText
+    } = this.props
+    console.log(this.props)
     const actions = [
       <FlatButton
         label="Cancel"
@@ -54,24 +44,14 @@ export default class DialogExampleModal extends React.Component {
 
     return (
       <div style={{marginBottom: 15}}>
-        <RaisedButton label="Add patient" onClick={() => this.handleOpen()} />
+        <RaisedButton label={btnText} onClick={() => this.handleOpen()} />
         <Dialog
           title="Add patient"
           actions={actions}
           modal={true}
           open={this.state.open}
         >
-          <div>
-            <TextField
-              hintText="Custom Underline Focus Color"
-              underlineFocusStyle={styles.underlineStyle}
-            /><br />
-            <TextField
-              floatingLabelText="Styled Floating Label Text"
-              floatingLabelStyle={styles.floatingLabelStyle}
-              floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
-            />
-          </div>
+        {this.props.children}
         </Dialog>
       </div>
     );

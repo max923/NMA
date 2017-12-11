@@ -8,7 +8,6 @@ import SidebarForm from './../SidebarForm';
 import SidebarHeader from './../SidebarHeader';
 import SidebarMinimizer from './../SidebarMinimizer';
 
-import AddPatient from '../../components/AddPatient'
 
 class Sidebar extends Component {
 

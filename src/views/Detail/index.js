@@ -51,6 +51,14 @@ class Detail extends Component {
 										</div> 
 									)
 									break;
+								case 'idl':
+								case 'hdl':
+									return (
+										<div>
+											<span>{key.toUpperCase()}: </span>
+										</div> 
+									)
+									break;
 								default:
 									return (
 										<Item>
