@@ -7,7 +7,7 @@ import { orange500, blue500 } from 'material-ui/styles/colors';
 /**
  * A modal dialog can only be closed by selecting one of the actions.
  */
-export default class DialogExampleModal extends React.Component {
+export default class DialogModal extends React.Component {
   constructor(prop) {
     super(prop)
     this.state = {
@@ -16,19 +16,20 @@ export default class DialogExampleModal extends React.Component {
   }
   handleOpen() {
     this.setState({ open: true });
+    this.props.handleClick()
   }
   handleClose() {
     this.setState({ open: false });
   };
-  handleSendData() {
+  handleSubmit() {
     this.handleClose()
   }
 
   render() {
     const {
-      btnText
+      btnText,
+      title
     } = this.props
-    console.log(this.props)
     const actions = [
       <FlatButton
         label="Cancel"
@@ -38,20 +39,20 @@ export default class DialogExampleModal extends React.Component {
       <FlatButton
         label="Add"
         primary={true}
-        onClick={() => this.handleSendData()}
+        onClick={() => this.handleSubmit()}
       />,
     ];
 
     return (
       <div style={{marginBottom: 15}}>
         <RaisedButton label={btnText} onClick={() => this.handleOpen()} />
-        <Dialog
-          title="Add patient"
-          actions={actions}
-          modal={true}
-          open={this.state.open}
-        >
-        {this.props.children}
+          <Dialog
+            title={title}
+            actions={actions}
+            modal={true}
+            open={this.state.open}
+          >
+          {this.props.children}
         </Dialog>
       </div>
     );

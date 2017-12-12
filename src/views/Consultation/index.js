@@ -5,54 +5,149 @@ import ConsultationBoard from '../../components/ConsultationBoard'
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RaisedButton from 'material-ui/RaisedButton';
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import fetchApiData from '../../model/Api'
 import 'react-datepicker/dist/react-datepicker.css';
 class Consultation extends Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			startDate: moment(),
-			doctorName: ''
+			open: false,
+			searchConsultationDate: moment(),
+			reservationDate: null,
+			physician: [],
+			doctorSeq: 'default',
+			reservationDoctorSeq: 'default',
+			reservationPhysician: [],
+			reservationPatientSeq: 'default',
+			reservationPatients: [],
+			consultationList: null
 		};
-		this.handleChange = this.handleChange.bind(this);
 	}
 	componentDidMount() {
-
+		fetchApiData('/physician', 'get')
+			.then(({ data }) => {
+				this.setState({ physician: data })
+			})
 	}
-	handleChange(date) {
-		this.setState({
-			startDate: date
-		});
+	handleOpen() {
+		this.setState({ open: true });
+	}
+	handleClose() {
+		this.setState({ open: false });
+	}
+	handlReservationDateTime(dateTime) {
+		//2018-08-12 09:20:00
+		const formateDateTime = dateTime.format('YYYY-MM-DD HH:mm:ss')
+		fetchApiData(`/physician/available?datetime=${formateDateTime}`, 'get')
+			.then(({ data }) => {
+				this.setState({
+					reservationDate: dateTime,
+					reservationPhysician: data
+				})
+			})
+		fetchApiData(`/patient/available?datetime=${formateDateTime}`, 'get')
+			.then(({ data }) => {
+				this.setState({
+					reservationDate: dateTime,
+					reservationPatients: data
+				})
+			})
+	}
+	handleSearchBtn() {
+		fetchApiData(`/consultation?doctorSeq=${this.state.doctorSeq}&date=${this.state.searchConsultationDate.format('YYYY-MM-DD')}`, 'get')
+			.then(({ data }) => {
+				this.setState({ consultationList: data })
+			})
+	}
+	handleReservationBtn() {
+		const consultationData = {
+			"patientSeq": this.state.reservationPatientSeq,
+			"doctorSeq": this.state.reservationDoctorSeq,
+			"datetime": this.state.reservationDate.format('YYYY-MM-DD HH:mm:ss')
+		}
+		// console.log(consultationData)
+		fetchApiData(`/consultation`, 'post', consultationData)
+			.then((data) => {
+				if (data.code === 200) this.handleClose()
+			})
 	}
 	render() {
-		const data = [
-			{
-				"datetime": "2016-07-23 08:30:00",
-				"doctor": {
-					"name": "Jack"
-				},
-				"patient": {
-					"name": "Hanrry"
-				}
-			},
-			{
-				"datetime": "2016-07-23 10:30:00",
-				"doctor": {
-					"name": "Jack"
-				},
-				"patient": {
-					"name": "Muse"
-				}
-			}
-		]
+		const actions = [
+			<FlatButton
+				label="Cancel"
+				primary={true}
+				onClick={() => this.handleClose()}
+			/>,
+			<FlatButton
+				label="Reservation"
+				primary={true}
+				onClick={() => this.handleReservationBtn()}
+			/>,
+		];
 		return (
 			<div className="animated fadeIn">
-				<SearchBarWrapper>
-					<div>Doctor name: <input type="text" onInput={(e) => this.setState({ doctorName: e.target.value})}/></div>
-					<DatePickerWrapper>Day:  <DatePicker onChange={this.handleChange} selected={this.state.startDate}/></DatePickerWrapper>
-					<RaisedButton label="Search" secondary={true} />
-				</SearchBarWrapper>
+				<RaisedButton label='Reservation' onClick={() => this.handleOpen()} />
+				<Dialog
+					title='Reservation consultation'
+					actions={actions}
+					modal={true}
+					open={this.state.open}
+				>
+					<div>
+						<DatePickerWrapper>Date:
+							<DatePicker
+								showTimeSelect
+								dateFormat="YYYY-MM-DD HH:mm:ss"
+								timeFormat="HH:mm"
+								timeIntervals={15}
+								onChange={(date) => this.handlReservationDateTime(date)}
+								selected={this.state.reservationDate} />
+						</DatePickerWrapper>
 
-				<ConsultationBoard Data={data} />
+						<SelectDoctorWrapepr>
+							<span>Doctor: </span>
+							<DropDownMenu maxHeight={300} value={this.state.reservationDoctorSeq} onChange={(event, index, value) => this.setState({ reservationDoctorSeq: value })}>
+								<MenuItem value='default' primaryText='Choose doctor' disabled />
+								{
+									this.state.reservationPhysician.map((element, index) => (
+										<MenuItem value={element.employee.seq} key={index} primaryText={element.employee.name} />
+									))
+								}
+							</DropDownMenu>
+						</SelectDoctorWrapepr>
+						<SelectPatientWrapepr>
+							<span>Patient: </span>
+							<DropDownMenu maxHeight={300} value={this.state.reservationPatientSeq} onChange={(event, index, value) => this.setState({ reservationPatientSeq: value })}>
+								<MenuItem value='default' primaryText='Choose patient' disabled />
+								{
+									this.state.reservationPatients.map((element, index) => (
+										<MenuItem value={element.seq} key={`patient${index}`} primaryText={element.name} />
+									))
+								}
+							</DropDownMenu>
+						</SelectPatientWrapepr>
+					</div>
+				</Dialog>
+				<SearchBarWrapper>
+					<SelectDoctorWrapepr>
+						<span>Doctor:</span>
+						<DropDownMenu maxHeight={300} value={this.state.doctorSeq} onChange={(event, index, value) => this.setState({ doctorSeq: value })}>
+							<MenuItem value='default' primaryText='Choose doctor' disabled />
+							{
+								this.state.physician.map((element, index) => (
+									<MenuItem value={element.employee.seq} key={`doctor${index}`} primaryText={element.employee.name} />
+								))
+							}
+						</DropDownMenu>
+					</SelectDoctorWrapepr>
+					<DatePickerWrapper>Date:  <DatePicker onChange={(date) => this.setState({ searchConsultationDate: date })} selected={this.state.searchConsultationDate} /></DatePickerWrapper>
+					<RaisedButton label="Search" secondary={true} onClick={() => this.handleSearchBtn()} style={{ marginLeft: '10px' }} />
+				</SearchBarWrapper>
+				<ConsultationBoard Data={this.state.consultationList} />
 			</div>
 		)
 	}
@@ -63,11 +158,20 @@ const SearchBarWrapper = styled.div`
 	display: flex;
 	margin-bottom: 10px;
 	align-items: center;
+	padding: 15px;
+	background: #fff;
 `
 const DatePickerWrapper = styled.div`
 	display: flex;
 	align-items: center;
-	margin: 0 10px;
+`
+const SelectDoctorWrapepr = styled.div`
+	display: flex;
+	align-items: center;
+`
+const SelectPatientWrapepr = styled.div`
+display: flex;
+align-items: center;
 `
 
 

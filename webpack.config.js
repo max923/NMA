@@ -29,7 +29,16 @@ module.exports = (env = {}) => {
       //   port: 9001,
       compress: true,
       hot: true,
-      open: true
+      open: true,
+      proxy: {
+        '/api': {
+          target: 'http://ec2-52-14-138-11.us-east-2.compute.amazonaws.com:8080/nma/api',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': ''
+          }
+        }
+      }
     },
     module: {
       rules: [
@@ -55,7 +64,7 @@ module.exports = (env = {}) => {
             use: [
               {
                 loader: 'css-loader',
-                options: {alias: {'../img': '../public/img'}}
+                options: { alias: { '../img': '../public/img' } }
               },
               {
                 loader: 'sass-loader'
@@ -92,7 +101,7 @@ module.exports = (env = {}) => {
     },
     plugins: [
       new webpack.HotModuleReplacementPlugin(),
-      new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
+      new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
       new webpack.NamedModulesPlugin(),
       extractCSS,
       extractSCSS,
@@ -103,9 +112,9 @@ module.exports = (env = {}) => {
         }
       ),
       new CopyWebpackPlugin([
-          {from: './public/img', to: 'img'}
-        ],
-        {copyUnmodified: false}
+        { from: './public/img', to: 'img' }
+      ],
+        { copyUnmodified: false }
       )
     ]
   }

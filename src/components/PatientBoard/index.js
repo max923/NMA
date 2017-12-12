@@ -4,7 +4,7 @@ import {
     BrowserRouter as Router,
     Route,
     Link
-  } from 'react-router-dom'
+} from 'react-router-dom'
 import {
     Table,
     TableBody,
@@ -14,56 +14,9 @@ import {
     TableRowColumn,
 } from 'material-ui/Table';
 import RaisedButton from 'material-ui/RaisedButton';
-/**
- * 
- * {
-            "seq": 1,
-            "patient_no": 1,
-            "name": "Jack",
-            "birth": "1989-09-02",
-            "gender": "M",
-            "address": "xxxxxxxxxxx",
-            "tel": "xxxxxxxx",
-            "blood_type": "AB",
-            "blood_surger": 2.7,
-            "idl": 1.8,
-            "hdl": 2.6,
-            "triglyceride": 3.7,
-            "risk_heart_disease": "L",
-            "primaryDoctorSeq": {
-                "seq": 2,
-                "annual_salary": 70000,
-                "specialty": "xxxxxxx",
-                "employee": {
-                    "seq": 4,
-                    "emp_no": 4,
-                    "ssn": "xxxxxxxxx",
-                    "name": "Jack",
-                    "gender": "M",
-                    "address": "xxxxxx",
-                    "tel": "xxxxxxxx"
-                }
-            }
-        },
- */
-const PatientBoard = (props) => {
-    if (!props.Data) return <div>Loading</div>
-    const {
-        seq,
-        patient_no,
-        name,
-        birth,
-        gender,
-        address,
-        tel,
-        blood_type,
-        blood_surger,
-        ldl,
-        hdl,
-        triglyceride,
-        risk_heart_disease,
-        primaryDoctorSeq
-    } = props.Data
+
+const PatientBoard = ({data}) => {
+    if ( data.length ===0 ) return <div>Loading</div>
     return (
         <Table>
             <TableHeader>
@@ -78,23 +31,27 @@ const PatientBoard = (props) => {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                <TableRow>
-                    <TableRowColumn>{patient_no}</TableRowColumn>
-                    <TableRowColumn>{name}</TableRowColumn>
-                    <TableRowColumn>
-                        {gender === 'M'? 'Male' : 'Female'}
-                    </TableRowColumn>
-                    <TableRowColumn>{birth}</TableRowColumn>
-                    <TableRowColumn>{tel}</TableRowColumn>
-                    <TableRowColumn>{address}</TableRowColumn>
-                    <TableRowColumn>
-                        <Link 
-                            to={`/patient/${seq}`}
-                        >
-                            <RaisedButton label="Detail" secondary={true} />
-                        </Link>
-                    </TableRowColumn>
-                </TableRow>
+                {
+                    data.map(({patientNo, seq, name, gender, birth, tel, address}) => (
+                        <TableRow>
+                            <TableRowColumn>{patientNo}</TableRowColumn>
+                            <TableRowColumn>{name}</TableRowColumn>
+                            <TableRowColumn>
+                                {gender === 'M' ? 'Male' : 'Female'}
+                            </TableRowColumn>
+                            <TableRowColumn>{birth}</TableRowColumn>
+                            <TableRowColumn>{tel}</TableRowColumn>
+                            <TableRowColumn>{address}</TableRowColumn>
+                            <TableRowColumn>
+                                <Link
+                                    to={`/patient/${seq}`}
+                                >
+                                    <RaisedButton label="Detail" secondary={true} />
+                                </Link>
+                            </TableRowColumn>
+                        </TableRow>
+                    ))
+                }
             </TableBody>
         </Table>
     )

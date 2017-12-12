@@ -1,96 +1,90 @@
 import React, { Component } from 'react';
 import PatientBoard from '../../components/PatientBoard'
 import styled from 'styled-components'
-import AddButton from '../../components/AddButton'
-import request from 'axios'
+import axios from 'axios'
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import TextField from 'material-ui/TextField';
 import { orange500, blue500 } from 'material-ui/styles/colors';
-import SelectField from 'material-ui/SelectField';
+import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
+import fetchApiData from '../../model/Api'
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 class Patient extends Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			addData: {
-				"name": "",
-				"birth": "",
-				"gender": "",
-				"address": "",
-				"tel": "",
-				"bloodType": "",
-				"bloodSurger": "",
-				"idl": "",
-				"hdl": "",
-				"triglyceride": "",
-				"primaryDoctor": "",
-				"illnesses": [],
-				"allergies": []
-			  },
-			value: []
+			open: false,
+			patientData: [],
+			doctorSeq: 'doctorDefault',
+			illnessSeq: 'illnessDefault',
+			allergySeq: 'allergyDefault',
+			physician: [],
+			illness: [],
+			allergy: [],
+			illnessRes: [],
+			allergyRes: []
 		};
 	}
-	componentDidMount() {
-		// request.get()
+	handleOpen() {
+		this.setState({ open: true });
 	}
-	render() {
-		const physician = [
-			{
-				"annualSalary": 70000,
-				"specialty": "xxxxxxxxxxx",
-				"employee": {
-					"seq": 2,
-					"emp_no": 2,
-					"ssn": "xxxxxxxxx",
-					"name": "Jack",
-					"gender": "M",
-					"address": "xxxxxxxxx",
-					"tel": "xxxxxxx"
-				}
-			},
-			{
-				"annualSalary": 70000,
-				"specialty": "xxxxxxxxxxx",
-				"employee": {
-					"seq": 3,
-					"emp_no": 3,
-					"ssn": "xxxxxxxxx",
-					"name": "Marry",
-					"gender": "F",
-					"address": "xxxxxxxxx",
-					"tel": "xxxxxxx"
-				}
-			}
-		]
+	handleClose() {
+		this.setState({ open: false });
+	};
+	handleSubmit() {
 		const data = {
-			"seq": 1,
-			"patient_no": 1,
-			"name": "Jack",
-			"birth": "1989-09-02",
-			"gender": "M",
-			"address": "xxxxxxxxxxx",
-			"tel": "xxxxxxxx",
-			"blood_type": "AB",
-			"blood_surger": 2.7,
-			"idl": 1.8,
+			"name": "Hank",
+			"birth": "1991-07-12",
+			"ssn": "121512331",
+			"gender": "F",
+			"address": "202 Central Ave",
+			"tel": "2187779123",
+			"bloodType": "AB",
+			"bloodSurger": 2.7,
+			"ldl": 1.8,
 			"hdl": 2.6,
 			"triglyceride": 3.7,
-			"risk_heart_disease": "L",
-			"primaryDoctor": {
-				"seq": 2,
-				"annual_salary": 70000,
-				"specialty": "xxxxxxx",
-				"employee": {
-					"seq": 4,
-					"emp_no": 4,
-					"ssn": "xxxxxxxxx",
-					"name": "Jack",
-					"gender": "M",
-					"address": "xxxxxx",
-					"tel": "xxxxxxxx"
-				}
-			}
+			"primaryDoctorSeq": 1,
+			"illnesses": [2],
+			"allergies": [1, 3, 4]
 		}
+
+		fetchApiData('/patient', 'post', data)
+			.then(res => {
+				var copyPatientData = Object.assign([], this.state.patientData);
+				copyPatientData.push(res.data)
+				this.setState({ patientData: copyPatientData })
+			})
+		this.handleClose()
+	}
+	componentDidMount() {
+		fetchApiData('/patient', 'get')
+			.then(({ data }) => {
+				this.setState({ patientData: data })
+			})
+		fetchApiData('/physician', 'get')
+			.then(({ data }) => {
+				this.setState({ physician: data })
+			})
+		fetchApiData('/symptom/illness', 'get')
+			.then(({ data }) => {
+				this.setState({ illness: data })
+			})
+		fetchApiData('/symptom/allergy', 'get')
+			.then(({ data }) => {
+				this.setState({ allergy: data })
+			})
+	}
+	handleDropMenuIllness(value) {
+		var copyPatientData = Object.assign([], this.state.illnessRes);
+		copyPatientData.push(value)
+		this.setState({ illnessRes: copyPatientData })
+	}
+	render() {
 		const styles = {
 			errorStyle: {
 				color: orange500,
@@ -105,77 +99,145 @@ class Patient extends Component {
 				color: blue500,
 			},
 		};
+		const actions = [
+			<FlatButton
+				label="Cancel"
+				primary={true}
+				onClick={() => this.handleClose()}
+			/>,
+			<FlatButton
+				label="Add"
+				primary={true}
+				onClick={() => this.handleSubmit()}
+			/>,
+		];
 		return (
 			<div className="animated fadeIn">
-				<AddButton btnText="Add patient">
+				<RaisedButton label='Add patient' onClick={() => this.handleOpen()} />
+				<Dialog
+					title='Add patient'
+					actions={actions}
+					modal={true}
+					open={this.state.open}
+				>
 					<DialogContentWrapper>
+
 						<InputWrapper>
 							<span>Name: </span>
-							<input type="text" onInput={ e => this.setState({name: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ name: e.target.value })} />
 						</InputWrapper>
-
+						<InputWrapper>
+							<span>SSN: </span>
+							<input type="text"
+								maxLength={9}
+								onInput={e => this.setState({ ssn: e.target.value })}
+								onKeyPress={(event) => event.charCode >= 48 && event.charCode <= 57}
+							/>
+						</InputWrapper>
 						<InputWrapper>
 							<span>Birth: </span>
-
+							<DatePicker onChange={date => this.setState({ birth: date })} selected={this.state.birth || moment()} />
 						</InputWrapper>
-						<InputWrapper style={{display:'flex'}}>
+						<InputWrapper>
 							<span>Gender: </span>
-							<RadioButtonGroup name="shipSpeed" defaultSelected="not_light" style={{display:'flex'}}>
-								<RadioButton
-									value="Ｍ"
-									label="Male"
-									style={styles.radioButton}
-								/>
-								<RadioButton
-									value="Ｆ"
-									label="Female"
-									style={styles.radioButton}
-								/>
-							</RadioButtonGroup>
+							<label>Male: <input type="radio" name="gender" value="M" onChange={e => this.setState({ gender: e.target.value })} /></label>
+							<label>Female: <input type="radio" name="gender" value="F" onChange={e => this.setState({ gender: e.target.value })} /></label>
 
 						</InputWrapper>
 						<InputWrapper>
 							<span>Address: </span>
-							<input type="text" onInput={ e => this.setState({address: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ address: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>Tel: </span>
-							<input type="tel" onInput={ e => this.setState({tel: e.target.value})}/>
+							<input type="tel" onInput={e => this.setState({ tel: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>BloodType: </span>
-							<input type="text" onInput={ e => this.setState({bloodType: e.target.value})}/>
+							<label>A: <input type="radio" name="bloodType" value="A" onChange={e => this.setState({ bloodType: e.target.value })} /></label>
+							<label>B: <input type="radio" name="bloodType" value="B" onChange={e => this.setState({ bloodType: e.target.value })} /></label>
+							<label>AB: <input type="radio" name="bloodType" value="AB" onChange={e => this.setState({ bloodType: e.target.value })} /></label>
+							<label>O: <input type="radio" name="bloodType" value="O" onChange={e => this.setState({ bloodType: e.target.value })} /></label>
 						</InputWrapper>
 						<InputWrapper>
 							<span>BloodSurger: </span>
-							<input type="text" onInput={ e => this.setState({bloodSurger: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ bloodSurger: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>IDL: </span>
-							<input type="text" onInput={ e => this.setState({idl: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ idl: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>HDL: </span>
-							<input type="text" onInput={ e => this.setState({hdl: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ hdl: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>Triglyceride: </span>
-							<input type="text" onInput={ e => this.setState({triglyceride: e.target.value})}/>
+							<input type="text" onInput={e => this.setState({ triglyceride: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>PrimaryDoctorSeq: </span>
-							<SelectField
-								multiple={true}
-								hintText="Select a doctor"
-								value={this.state.values}
-								onChange={this.handleChange}
-								selectionRenderer={this.selectionRenderer}
-							>
-							</SelectField>
+							<div>
+								<DropDownMenu
+									maxHeight={300}
+									value={this.state.doctorSeq}
+									style={{ minWidth: '150px' }}
+									onChange={(event, index, value) => this.setState({ doctorSeq: value })}
+								>
+									<MenuItem value="doctorDefault" primaryText="Choose doctor" disabled />
+									{
+										this.state.physician.map((element, index) => (
+											<MenuItem value={element.employee.seq} key={index} primaryText={element.employee.name} />
+										))
+									}
+								</DropDownMenu>
+							</div>
+						</InputWrapper>
+						<InputWrapper>
+							<span>Illnesses: </span>
+							<div>
+								<DropDownMenu
+									maxHeight={300}
+									value={this.state.illnessSeq}
+									style={{ minWidth: '150px' }}
+									onChange={(event, index, value) => this.handleDropMenuIllness(value)}
+								>
+									<MenuItem value="illnessDefault" primaryText="Choose illnesses" disabled />
+									{
+										this.state.illness.map((element, index) => (
+											<MenuItem value={element.seq} key={index} primaryText={element.name} />
+										))
+									}
+								</DropDownMenu>
+								{
+									this.state.illness
+									.filter(element => this.state.illnessRes.map(value => element.seq == value ) )
+									.map(element => <p>{element.name}</p>)
+
+								}
+							</div>
+						</InputWrapper>
+						<InputWrapper>
+							<span>Allergies: </span>
+							<div>
+								<DropDownMenu
+									maxHeight={300}
+									value={this.state.allergySeq}
+									style={{ minWidth: '150px' }}
+									onChange={(event, index, value) => this.setState({ allergySeq: value })}
+								>
+									<MenuItem value="allergyDefault" primaryText="Choose allergy" disabled />
+									{
+										this.state.allergy.map((element, index) => (
+											<MenuItem value={element.seq} key={index} primaryText={element.name} />
+										))
+									}
+								</DropDownMenu>
+							</div>
 						</InputWrapper>
 					</DialogContentWrapper>
-				</AddButton>
-				<PatientBoard Data={data} />
+				</Dialog>
+				<PatientBoard data={this.state.patientData} />
 			</div>
 		)
 	}
@@ -187,6 +249,8 @@ const DialogContentWrapper = styled.div`
 	flex-wrap: wrap;
 `
 const InputWrapper = styled.div`
+	display: flex;
+	align-items: center;
 	width: 50%;
 	margin-bottom: 10px;
 	padding: 0 5px;
@@ -194,20 +258,9 @@ const InputWrapper = styled.div`
 		width: 150px;
 		display: inline-block;
 	}
+	> label{
+		margin-right: 5px;
+	}
 `
-// "{
-// 	"name": "Jack",
-// 	"birth": "1989-09-02",
-// 	"gender": "M",
-// 	"address": "xxxxxxxxxxx",
-// 	"tel": "xxxxxxxx",
-// 	"blood_type": "O",
-// 	"blood_surger": 2.7,
-// 	"idl": 1.8,
-// 	"hdl": 2.6,
-// 	"triglyceride": 3.7,
-// 	"primaryDoctor": 2,
-// 	"illnesses": [248, 302, 126],
-// 	"allergies": [112, 203]
-// }"
+
 
