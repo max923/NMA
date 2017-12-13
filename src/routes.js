@@ -5,6 +5,7 @@ const routes = {
   '/consultation': 'Consultation',
   '/inpatient': 'Inpatient',
   '/inpatient/available': 'Available Bed',
-  '/surgery': 'Surgery'
+  '/surgery': 'Surgery',
+  '/staff': 'Staff'
 };
 export default routes;

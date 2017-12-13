@@ -16,7 +16,7 @@ class Consultation extends Component {
 		super(props)
 		this.state = {
 			open: false,
-			searchConsultationDate: moment(),
+			searchConsultationDate: null,
 			reservationDate: null,
 			physician: [],
 			doctorSeq: 'default',
@@ -58,18 +58,17 @@ class Consultation extends Component {
 			})
 	}
 	handleSearchBtn() {
-		fetchApiData(`/consultation?doctorSeq=${this.state.doctorSeq}&date=${this.state.searchConsultationDate.format('YYYY-MM-DD')}`, 'get')
+		fetchApiData(`/consultation?${this.state.doctorSeq !== 'default' ? `doctorSeq=${this.state.doctorSeq}` : ''}${this.state.searchConsultationDate ? `&date=${this.state.searchConsultationDate.format('YYYY-MM-DD')}` : ''}`, 'get')
 			.then(({ data }) => {
 				this.setState({ consultationList: data })
 			})
 	}
 	handleReservationBtn() {
 		const consultationData = {
-			"patientSeq": this.state.reservationPatientSeq,
-			"doctorSeq": this.state.reservationDoctorSeq,
-			"datetime": this.state.reservationDate.format('YYYY-MM-DD HH:mm:ss')
+			"patientSeq": this.state.reservationPatientSeq!== 'default' ? this.state.reservationPatientSeq : null ,
+			"doctorSeq": this.state.reservationDoctorSeq !== 'default' ? this.state.reservationDoctorSeq : null,
+			"datetime": this.state.reservationDate ? this.state.reservationDate.format('YYYY-MM-DD HH:mm:ss'): null
 		}
-		// console.log(consultationData)
 		fetchApiData(`/consultation`, 'post', consultationData)
 			.then((data) => {
 				if (data.code === 200) this.handleClose()
@@ -139,12 +138,12 @@ class Consultation extends Component {
 							<MenuItem value='default' primaryText='Choose doctor' disabled />
 							{
 								this.state.physician.map((element, index) => (
-									<MenuItem value={element.employee.seq} key={`doctor${index}`} primaryText={element.employee.name} />
+									<MenuItem value={element.seq} key={`doctor${index}`} primaryText={element.employee.name} />
 								))
 							}
 						</DropDownMenu>
 					</SelectDoctorWrapepr>
-					<DatePickerWrapper>Date:  <DatePicker onChange={(date) => this.setState({ searchConsultationDate: date })} selected={this.state.searchConsultationDate} /></DatePickerWrapper>
+					<DatePickerWrapper>Date:  <DatePicker dateFormat="YYYY-MM-DD" onChange={(date) => this.setState({ searchConsultationDate: date })} selected={this.state.searchConsultationDate} /></DatePickerWrapper>
 					<RaisedButton label="Search" secondary={true} onClick={() => this.handleSearchBtn()} style={{ marginLeft: '10px' }} />
 				</SearchBarWrapper>
 				<ConsultationBoard Data={this.state.consultationList} />

@@ -6,6 +6,7 @@ import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import TextField from 'material-ui/TextField';
 import { orange500, blue500 } from 'material-ui/styles/colors';
 import DropDownMenu from 'material-ui/DropDownMenu';
+import Snackbar from 'material-ui/Snackbar';
 import MenuItem from 'material-ui/MenuItem';
 import fetchApiData from '../../model/Api'
 import Dialog from 'material-ui/Dialog';
@@ -13,11 +14,13 @@ import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
+import _ from 'lodash'
 class Patient extends Component {
 	constructor(props) {
 		super(props)
 		this.state = {
 			open: false,
+			snackbarOpen: false,
 			patientData: [],
 			doctorSeq: 'doctorDefault',
 			illnessSeq: 'illnessDefault',
@@ -37,29 +40,30 @@ class Patient extends Component {
 	};
 	handleSubmit() {
 		const data = {
-			"name": "Hank",
-			"birth": "1991-07-12",
-			"ssn": "121512331",
-			"gender": "F",
-			"address": "202 Central Ave",
-			"tel": "2187779123",
-			"bloodType": "AB",
-			"bloodSurger": 2.7,
-			"ldl": 1.8,
-			"hdl": 2.6,
-			"triglyceride": 3.7,
-			"primaryDoctorSeq": 1,
-			"illnesses": [2],
-			"allergies": [1, 3, 4]
+			"name": this.state.name || null,
+			"birth": this.state.birth ? this.state.birth.format('YYYY-MM-DD') : null,
+			"ssn": this.state.ssn || null,
+			"gender": this.state.gender || null,
+			"address": this.state.address || null,
+			"tel": this.state.tel || null,
+			"bloodType": this.state.bloodType || null,
+			"bloodSurger": Number(this.state.bloodSurger) || null,
+			"ldl": Number(this.state.ldl) || null,
+			"hdl": Number(this.state.hdl) || null,
+			"triglyceride": Number(this.state.triglyceride) || null,
+			"primaryDoctorSeq": this.state.doctorSeq !== 'doctorDefault' ? this.state.doctorSeq : null,
+			"illnesses": this.state.illnessRes,
+			"allergies": this.state.allergyRes
 		}
-
 		fetchApiData('/patient', 'post', data)
 			.then(res => {
-				var copyPatientData = Object.assign([], this.state.patientData);
-				copyPatientData.push(res.data)
-				this.setState({ patientData: copyPatientData })
+				if (res.code === 200) {
+					var copyPatientData = Object.assign([], this.state.patientData);
+					copyPatientData.push(res.data)
+					this.setState({ patientData: copyPatientData })
+					this.handleClose()
+				}
 			})
-		this.handleClose()
 	}
 	componentDidMount() {
 		fetchApiData('/patient', 'get')
@@ -79,11 +83,30 @@ class Patient extends Component {
 				this.setState({ allergy: data })
 			})
 	}
-	handleDropMenuIllness(value) {
-		var copyPatientData = Object.assign([], this.state.illnessRes);
-		copyPatientData.push(value)
-		this.setState({ illnessRes: copyPatientData })
+	handleDropMenuIllness(event, index, value) {
+		console.log(event)
+		var copyData = Object.assign([], this.state.illnessRes);
+		copyData.push(value)
+		this.setState({
+			illnessRes: _.uniqBy(copyData),
+			snackbarOpen: true,
+			illnessSeq: value
+		})
 	}
+	handleDropMenuAllergies(value) {
+		var copyData = Object.assign([], this.state.allergyRes);
+		copyData.push(value)
+		this.setState({
+			allergyRes: _.uniqBy(copyData),
+			snackbarOpen: true,
+			allergySeq: value
+		})
+	}
+	handleRequestClose() {
+		this.setState({
+			snackbarOpen: false,
+		});
+	};
 	render() {
 		const styles = {
 			errorStyle: {
@@ -114,6 +137,12 @@ class Patient extends Component {
 		return (
 			<div className="animated fadeIn">
 				<RaisedButton label='Add patient' onClick={() => this.handleOpen()} />
+				<Snackbar
+					open={this.state.snackbarOpen}
+					message="Success Add"
+					autoHideDuration={4000}
+					onRequestClose={() => this.handleRequestClose()}
+				/>
 				<Dialog
 					title='Add patient'
 					actions={actions}
@@ -136,7 +165,7 @@ class Patient extends Component {
 						</InputWrapper>
 						<InputWrapper>
 							<span>Birth: </span>
-							<DatePicker onChange={date => this.setState({ birth: date })} selected={this.state.birth || moment()} />
+							<DatePicker onChange={date => this.setState({ birth: date })} selected={this.state.birth || null} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>Gender: </span>
@@ -164,8 +193,8 @@ class Patient extends Component {
 							<input type="text" onInput={e => this.setState({ bloodSurger: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
-							<span>IDL: </span>
-							<input type="text" onInput={e => this.setState({ idl: e.target.value })} />
+							<span>LDL: </span>
+							<input type="text" onInput={e => this.setState({ ldl: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
 							<span>HDL: </span>
@@ -176,7 +205,7 @@ class Patient extends Component {
 							<input type="text" onInput={e => this.setState({ triglyceride: e.target.value })} />
 						</InputWrapper>
 						<InputWrapper>
-							<span>PrimaryDoctorSeq: </span>
+							<span>Primary Doctor: </span>
 							<div>
 								<DropDownMenu
 									maxHeight={300}
@@ -200,7 +229,7 @@ class Patient extends Component {
 									maxHeight={300}
 									value={this.state.illnessSeq}
 									style={{ minWidth: '150px' }}
-									onChange={(event, index, value) => this.handleDropMenuIllness(value)}
+									onChange={(event, index, value) => this.handleDropMenuIllness(event, index, value)}
 								>
 									<MenuItem value="illnessDefault" primaryText="Choose illnesses" disabled />
 									{
@@ -209,13 +238,9 @@ class Patient extends Component {
 										))
 									}
 								</DropDownMenu>
-								{
-									this.state.illness
-									.filter(element => this.state.illnessRes.map(value => element.seq == value ) )
-									.map(element => <p>{element.name}</p>)
-
-								}
 							</div>
+							<br />
+
 						</InputWrapper>
 						<InputWrapper>
 							<span>Allergies: </span>
@@ -224,7 +249,7 @@ class Patient extends Component {
 									maxHeight={300}
 									value={this.state.allergySeq}
 									style={{ minWidth: '150px' }}
-									onChange={(event, index, value) => this.setState({ allergySeq: value })}
+									onChange={(event, index, value) => this.handleDropMenuAllergies(value)}
 								>
 									<MenuItem value="allergyDefault" primaryText="Choose allergy" disabled />
 									{

@@ -15,58 +15,155 @@ import {
     TableRowColumn,
 } from 'material-ui/Table';
 import RaisedButton from 'material-ui/RaisedButton';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
+class InpatientBoard extends Component {
+    constructor(prop) {
+        super(prop)
+        this.state = {
+            selectedAdd: 'default',
+            open: false,
+            bed: [],
+            nurse: [],
+            dialogType: null,
+            inPatientSeq: null,
+        }
+    }
+    componentDidMount() {
+        fetchApiData(`/nurse`, 'GET')
+            .then(({ data }) => {
+                this.setState({ nurse: data })
+            })
+        fetchApiData(`/inpatient/available_bed`, 'GET')
+            .then(({ data }) => {
+                this.setState({ bed: data })
+            })
+    }
+    handleOpen() {
+        this.setState({ open: true });
+    }
+    handleClose() {
+        this.setState({ open: false });
+    }
+    handleRemoveBed(e, seq) {
+        fetchApiData(`/inpatient/bed?inPatientSeq=${seq}`, 'DELETE')
+            .then(res => {
+                if (res.code === 200) this.props.refresh()()
+            })
 
-const InpatientBoard = ({ data,refresh }) => {
-    if (data.length === 0) return <div>Loading</div>
-    const handleRemoveBed = (e,seq) => {
-        fetchApiData(`/inpatient/bed?inPatientSeq=${seq}`,'delete')
-        .then(res =>{
-            if(res.code === 200) refresh() 
-        })
-        
     }
-    const handleRemoveNurse = (e,seq) => {
-        fetchApiData(`/inpatient/nurse?inPatientSeq=${seq}`,'delete')
-        .then(res =>{
-            if(res.code === 200) refresh() 
-        })
+    handleRemoveNurse(e, seq) {
+        fetchApiData(`/inpatient/nurse?inPatientSeq=${seq}`, 'DELETE')
+            .then(res => {
+                if (res.code === 200) this.props.refresh()()
+            })
     }
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHeaderColumn>Unit</TableHeaderColumn>
-                    <TableHeaderColumn>Nurse Name</TableHeaderColumn>
-                    <TableHeaderColumn>Patient</TableHeaderColumn>
-                    <TableHeaderColumn>Room Number</TableHeaderColumn>
-                    <TableHeaderColumn>Bed Id</TableHeaderColumn>
-                    <TableHeaderColumn></TableHeaderColumn>
-                    <TableHeaderColumn></TableHeaderColumn>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {
-                    data.map(({ nursingUnit, seq, patient, bed, nurse }) => (
-                        <TableRow>
-                            <TableRowColumn>{nursingUnit}</TableRowColumn>
-                            <TableRowColumn>{_.isEmpty(nurse) ? '' : nurse.employee.name}</TableRowColumn>
-                            <TableRowColumn>{_.isEmpty(patient) ? '' : patient.name}</TableRowColumn>
-                            <TableRowColumn>{_.isEmpty(bed) ? '' : bed.room.roomNum}</TableRowColumn>
-                            <TableRowColumn>{_.isEmpty(bed) ? '' : bed.bedId}</TableRowColumn>
-                            <TableRowColumn>
-                                <button onClick={(e) => handleRemoveBed(e,seq)}>Remove Bed</button>
-                            </TableRowColumn>
-                            <TableRowColumn>
-                                <button onClick={(e) => handleRemoveNurse(e,seq)}>Remove Nurse</button>
-                            </TableRowColumn>
-                        </TableRow>
-                    ))
-                }
-            </TableBody>
-        </Table>
-    )
+    handleDialogAdd(event, index, value,){
+        if(this.state.dialogType === 'nurse') {
+            fetchApiData(`/inpatient/nurse`, 'PUT',{
+                "inPatientSeq": this.state.inPatientSeq,
+                "nurseSeq": this.state.selectedAdd
+            })
+            .then(res => {
+                console.log(res)
+            })
+        } else if (this.state.dialogType === 'bed'){
+            fetchApiData(`/inpatient/bed`, 'PUT',{
+                "inPatientSeq": this.state.inPatientSeq,
+                "bedSeq": this.state.selectedAdd
+            })
+            .then(res => {
+                console.log(res)
+            })
+        }
+        this.handleClose() 
+        this.props.refresh()
+    }
+    render() {
+        const {
+            data,
+            refresh
+        } = this.props
+        if (data.length === 0) return <div>Loading</div>
+        const actions = [
+            <FlatButton
+                label="Cancel"
+                primary={true}
+                onClick={() => this.handleClose()}
+            />,
+            <FlatButton
+                label="Add"
+                primary={true}
+                onClick={() => this.handleDialogAdd()}
+            />,
+        ];
+        return (
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderColumn>Unit</TableHeaderColumn>
+                        <TableHeaderColumn>Patient</TableHeaderColumn>
+                        <TableHeaderColumn>Nurse</TableHeaderColumn>
+                        <TableHeaderColumn>Room Number</TableHeaderColumn>
+                        <TableHeaderColumn>Bed Id</TableHeaderColumn>
+                        <TableHeaderColumn></TableHeaderColumn>
+                        <TableHeaderColumn></TableHeaderColumn>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {
+                        data.map(({ nursingUnit, seq, patient, bed, nurse }) => (
+                            <TableRow>
+                                <TableRowColumn>{nursingUnit}</TableRowColumn>
+                                <TableRowColumn>{_.isEmpty(patient) ? '' : patient.name}</TableRowColumn>
+                                <TableRowColumn>{_.isEmpty(nurse) ? '' : nurse.employee.name}</TableRowColumn>
+                                <TableRowColumn>{_.isEmpty(bed) ? '' : bed.room.roomNum}</TableRowColumn>
+                                <TableRowColumn>{_.isEmpty(bed) ? '' : bed.bedId}</TableRowColumn>
+                                <TableRowColumn>
+                                    {
+                                        _.isEmpty(bed)
+                                            ? <button onClick={(e) => this.setState({ open: true, dialogType: 'bed',inPatientSeq: seq })}>Add Bed</button>
+                                            : <button onClick={(e) => this.handleRemoveBed(e, seq)}>Remove Bed</button>
+                                    }
+
+                                </TableRowColumn>
+                                <TableRowColumn>
+                                    {
+                                        _.isEmpty(nurse)
+                                            ? <button onClick={(e) => this.setState({ open: true, dialogType: 'nurse', inPatientSeq:seq })}>Add Nurse</button>
+                                            : <button onClick={(e) => this.handleRemoveNurse(e, seq)}>Remove Nurse</button>
+                                    }
+                                    <Dialog
+                                        title={this.state.dialogType === 'nurse'? 'Add Nurse': 'Add Bed'}
+                                        actions={actions}
+                                        modal={true}
+                                        open={this.state.open}
+                                    >
+                                        <DropDownMenu maxHeight={300} value={this.state.selectedAdd} onChange={(event, index, value) => this.setState({ selectedAdd: value })}>
+                                            <MenuItem value='default' primaryText={this.state.dialogType === 'nurse'? 'Select Nurse': 'Select Bed'} disabled />
+                                            {
+                                                this.state.dialogType === 'nurse'
+                                                    ? this.state.nurse.map((element, index) => (
+                                                        <MenuItem value={element.seq} key={index} primaryText={element.employee.name} />
+                                                    ))
+                                                    : this.state.bed.map((element, index) => (
+                                                        <MenuItem value={element.seq} key={index} primaryText={`${element.room.roomNum} ${element.bedId}`} />
+                                                    ))
+
+                                            }
+                                        </DropDownMenu>
+                                    </Dialog>
+                                </TableRowColumn>
+                            </TableRow>
+                        ))
+                    }
+                </TableBody>
+            </Table>
+        )
+    }
 }
-
 export default InpatientBoard;
 // InpatientBoard.defaultProps = {
 //     primaryDoctorSeq: {}

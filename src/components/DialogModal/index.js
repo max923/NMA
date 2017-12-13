@@ -36,15 +36,10 @@ export default class DialogModal extends React.Component {
         primary={true}
         onClick={() => this.handleClose()}
       />,
-      <FlatButton
-        label="Add"
-        primary={true}
-        onClick={() => this.handleSubmit()}
-      />,
     ];
 
     return (
-      <div style={{marginBottom: 15}}>
+      <div style={{margin:'5px'}}>
         <RaisedButton label={btnText} onClick={() => this.handleOpen()} />
           <Dialog
             title={title}

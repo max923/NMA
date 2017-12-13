@@ -23,7 +23,7 @@ class Surgery extends Component {
         super(props)
         this.state = {
             open: false,
-            dateTime: moment(),
+            dateTime: null,
             surgeon: [],
             patient: [],
             room: [],
@@ -37,7 +37,6 @@ class Surgery extends Component {
             availableSurgeon: [],
             availablePatient: [],
             surgeryType: [],
-            isSurgeryDone: false,
             availableRoomSeq: null,
             availableSurgeonSeq: null,
             availablePatientSeq: null,
@@ -67,7 +66,8 @@ class Surgery extends Component {
         this.setState({ open: false });
     }
     handleSearchBtn() {
-        fetchApiData(`/surgery/schedule?surgeonSeq=${this.state.surgeonSeq}&roomSeq=${this.state.roomSeq}&date=${this.state.dateTime.format('YYYY-MM-DD')}`, 'get')
+        
+        fetchApiData(`/surgery/schedule?${this.state.surgeonSeq ? `surgeonSeq=${this.state.surgeonSeq}`:'' }${this.state.roomSeq ? `&roomSeq=${this.state.roomSeq}`:''}${this.state.dateTime? `&date=${this.state.dateTime.format('YYYY-MM-DD')}`:''}`, 'get')
             .then(({ data }) => {
                 this.setState({schdules:data})
             })
@@ -90,26 +90,29 @@ class Surgery extends Component {
         })
     }
     componentDidUpdate() {
+        console.log('componentDidUpdate')
         const startDate = this.state.startDate
         const endDate = this.state.endDate
         const isSurgeryDone = this.state.isSurgeryDone
-        if (startDate && endDate && !isSurgeryDone) {
+        if (startDate && endDate) {
             const startDateFormate = startDate.format('YYYY-MM-DD HH:mm:ss')
             const endDateFormate = endDate.format('YYYY-MM-DD HH:mm:ss')
-            Promise.all([
-                fetchApiData(`/surgery/available_room?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
-                fetchApiData(`/surgery/available_surgeon?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
-                fetchApiData(`/surgery/available_patient?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
-                fetchApiData(`/surgery/type`, 'get'),
-            ]).then(res => {
-                this.setState({
-                    availableRoom: res[0].data,
-                    availableSurgeon: res[1].data,
-                    availablePatient: res[2].data,
-                    surgeryType: res[3].data,
-                    isSurgeryDone: true
+            if(`${startDateFormate}/${endDateFormate}` !== this.state.memoryDate){
+                Promise.all([
+                    fetchApiData(`/surgery/available_room?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
+                    fetchApiData(`/surgery/available_surgeon?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
+                    fetchApiData(`/surgery/available_patient?startDatetime=${startDateFormate}&endDatetime=${endDateFormate}`, 'get'),
+                    fetchApiData(`/surgery/type`, 'get'),
+                ]).then(res => {
+                    this.setState({
+                        availableRoom: res[0].data,
+                        availableSurgeon: res[1].data,
+                        availablePatient: res[2].data,
+                        surgeryType: res[3].data,
+                        memoryDate: `${startDateFormate}/${endDateFormate}`
+                    })
                 })
-            })
+            }
         }
     }
     render() {
@@ -215,7 +218,7 @@ class Surgery extends Component {
                         >
                             {
                                 this.state.surgeryType.map((element, index) => (
-                                    <MenuItem value={element.seq} key={index} primaryText={element.category} />
+                                    <MenuItem value={element.seq} key={index} primaryText={element.code} />
                                 ))
                             }
                         </DropDownMenu>

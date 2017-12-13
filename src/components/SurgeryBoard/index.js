@@ -23,25 +23,23 @@ const SurgeryBoard = ({ data }) => {
             <TableHeader>
                 <TableRow>
                     <TableHeaderColumn>Surgeon Name</TableHeaderColumn>
-                    <TableHeaderColumn>Surgeon Specialty</TableHeaderColumn>
                     <TableHeaderColumn>Patient Name</TableHeaderColumn>
-                    <TableHeaderColumn>Patient SSN</TableHeaderColumn>
-                    <TableHeaderColumn>Patient Tel</TableHeaderColumn>
                     <TableHeaderColumn>Room Number</TableHeaderColumn>
                     <TableHeaderColumn>Surgery Type</TableHeaderColumn>
+                    <TableHeaderColumn>Start Date</TableHeaderColumn>
+                    <TableHeaderColumn>End Date</TableHeaderColumn>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {
-                    data.map(({ surgeon,patient,type,room }) => (
+                    data.map((element) => (
                         <TableRow>
-                            <TableRowColumn>{surgeon.employee.name}</TableRowColumn>
-                            <TableRowColumn>{surgeon.specialty}</TableRowColumn>
-                            <TableRowColumn>{patient.name}</TableRowColumn>
-                            <TableRowColumn>{patient.ssn}</TableRowColumn>
-                            <TableRowColumn>{patient.tel}</TableRowColumn>
-                            <TableRowColumn>{room.roomNum}</TableRowColumn>
-                            <TableRowColumn>{type.category}</TableRowColumn>
+                            <TableRowColumn>{element.surgeon.employee.name}</TableRowColumn>
+                            <TableRowColumn>{element.patient.name}</TableRowColumn>
+                            <TableRowColumn>{element.room.roomNum}</TableRowColumn>
+                            <TableRowColumn>{element.type.code}</TableRowColumn>
+                            <TableRowColumn>{element.startDatetime}</TableRowColumn>
+                            <TableRowColumn>{element.endDatetime}</TableRowColumn>
                         </TableRow>
                     ))
                 }

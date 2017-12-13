@@ -17,12 +17,17 @@ export default {
     {
       name: 'Inpatient',
       url: '/inpatient',
-      icon: 'icon-plus'
+      icon: 'icon-folder-alt'
     },
     {
       name: 'Surgery',
       url: '/surgery',
-      icon: 'icon-pushpin'
+      icon: 'icon-plus'
+    },
+    {
+      name: 'Staff',
+      url: '/staff',
+      icon: 'icon-emotsmile'
     }
   ]
 };

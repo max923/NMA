@@ -26,7 +26,7 @@ class AvailableBed extends Component {
         };
     }
     componentDidMount() {
-        fetchApiData('inpatient/available_bed', 'get')
+        fetchApiData('/inpatient/available_bed', 'get')
             .then( ({data}) => {
                 this.setState({ availableBed: data })
             })

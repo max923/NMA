@@ -13,6 +13,8 @@ import Consultation from '../../views/Consultation'
 import Inpatient from '../../views/Inpatient'
 import AvailableBed from '../../views/AvailableBed'
 import Surgery from '../../views/Surgery'
+import Staff from '../../views/Staff'
+import StaffDetail from '../../views/StaffDetail'
 class Full extends Component {
 	constructor(prop) {
 		super(prop)
@@ -36,11 +38,12 @@ class Full extends Component {
 								<Route path="/inpatient/available" name="Availablebed" component={AvailableBed} />
 								<Route path="/inpatient" name="Inpatient" component={Inpatient} />
 								<Route path="/surgery" name="surgery" component={Surgery} />
+								<Route path="/staff/:seq" name="staff" component={StaffDetail} />
+								<Route path="/staff" name="staff" component={Staff} />
 								<Redirect from="/" to="/patient" />
 							</Switch>
 						</Container>
 					</main>
-					<Aside />
 				</div>
 			</div>
 		);
