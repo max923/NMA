@@ -67,7 +67,7 @@ class InpatientBoard extends Component {
                 "nurseSeq": this.state.selectedAdd
             })
             .then(res => {
-                console.log(res)
+                this.props.refresh()()
             })
         } else if (this.state.dialogType === 'bed'){
             fetchApiData(`/inpatient/bed`, 'PUT',{
@@ -75,11 +75,10 @@ class InpatientBoard extends Component {
                 "bedSeq": this.state.selectedAdd
             })
             .then(res => {
-                console.log(res)
+                this.props.refresh()()
             })
         }
         this.handleClose() 
-        this.props.refresh()
     }
     render() {
         const {
