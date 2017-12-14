@@ -90,7 +90,6 @@ class Surgery extends Component {
         })
     }
     componentDidUpdate() {
-        console.log('componentDidUpdate')
         const startDate = this.state.startDate
         const endDate = this.state.endDate
         const isSurgeryDone = this.state.isSurgeryDone

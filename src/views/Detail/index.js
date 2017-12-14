@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import styled from 'styled-components'
 import request from 'axios'
-import RaisedButton from 'material-ui/RaisedButton';
 import fetchApiData from '../../model/Api'
 import DialogModal from '../../components/DialogModal'
 import {
@@ -12,6 +11,11 @@ import {
 	TableRow,
 	TableRowColumn,
 } from 'material-ui/Table';
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
 import _ from 'lodash'
 class Detail extends Component {
 	constructor(props) {
@@ -21,12 +25,20 @@ class Detail extends Component {
 			seq: props.match.params.seq,
 			illnessData: [],
 			allergyData: [],
-			physician: []
+			physician: [],
+			open: false,
+			docSeq: 'default'
 		}
 	}
 	componentDidMount() {
 		this.fetchPatient()
 		this.fetchPhysician()
+	}
+	handleOpen() {
+		this.setState({ open: true });
+	}
+	handleClose() {
+		this.setState({ open: false });
 	}
 	fetchPhysician() {
 		fetchApiData('/physician', 'GET')
@@ -56,6 +68,16 @@ class Detail extends Component {
 		fetchApiData(`/patient/doctor?patientSeq=${this.state.seq}`, 'DELETE')
 			.then(({ data }) => {
 				this.fetchPatient()
+			})
+	}
+	assignDoctor() {
+		fetchApiData(`/patient/doctor`, 'PUT', {
+			"patientSeq": Number(this.state.seq) || null,
+			"doctorSeq": Number(this.state.docSeq) || null
+		})
+			.then(({ data }) => {
+				this.fetchPatient()
+				this.handleClose()
 			})
 	}
 	mappingTitle(title) {
@@ -90,6 +112,18 @@ class Detail extends Component {
 		}
 	}
 	render() {
+		const actions = [
+			<FlatButton
+				label="Cancel"
+				primary={true}
+				onClick={() => this.handleClose()}
+			/>,
+			<FlatButton
+				label="Assign"
+				primary={true}
+				onClick={() => this.assignDoctor()}
+			/>,
+		];
 		const data = this.state.patientData
 		if (data === {}) return <div>Loading</div>
 		return (
@@ -97,13 +131,13 @@ class Detail extends Component {
 				<BtnWrapper>
 					<DialogModal
 						title="Illness"
-						btnText="See illness"
+						btnText="See Illness"
 						handleClick={() => this.handleIllnessBtn()}
 					>
 						<ul>
 							{
 								_.isEmpty(this.state.illnessData)
-									? 'None illness'
+									? 'None Illness'
 									: this.state.illnessData.map(({ illness }) => (
 										<li>
 											<div>Descrilition: {illness.description}</div>
@@ -115,13 +149,13 @@ class Detail extends Component {
 					</DialogModal>
 					<DialogModal
 						title="Allergy"
-						btnText="See allergy"
+						btnText="See Allergy"
 						handleClick={() => this.handleAllergyBtn()}
 					>
 						<ul>
 							{
 								_.isEmpty(this.state.allergyData)
-									? 'None allergy'
+									? 'None Allergy'
 									: this.state.allergyData.map(({ allergy }) => (
 										<li>
 											Name: {allergy.name}
@@ -190,7 +224,33 @@ class Detail extends Component {
 							}
 						})
 					}
+					{
+						!data.primaryDoctor
+							? <button onClick={() => this.handleOpen()}>Assign Doctor</button>
+							: ''
+					}
 				</ItemsWrapepr>
+
+				<Dialog
+					title={'Assign Doctor'}
+					actions={actions}
+					modal={true}
+					open={this.state.open}
+				>
+					<DropDownMenu
+						maxHeight={300}
+						value={this.state.docSeq}
+						style={{ minWidth: '150px' }}
+						onChange={(event, index, value) => this.setState({ docSeq: value })}
+					>
+						<MenuItem value='default' primaryText={'Select Doctor'} disabled />
+						{
+							this.state.physician.map((element, index) => (
+								<MenuItem value={element.seq} key={index} primaryText={element.employee.name} />
+							))
+						}
+					</DropDownMenu>
+				</Dialog>
 			</div>
 		)
 	}
