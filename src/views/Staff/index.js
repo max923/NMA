@@ -325,7 +325,7 @@ class Staff extends Component {
                                     </TableRowColumn>
                                     <TableRowColumn>
                                         <Link
-                                            to={`/staff/${element.seq}`}
+                                            to={`/staff/${this.getMappingStaff(this.state.selectedStaff)}/${element.seq}`}
                                         >
                                             <RaisedButton label="Detail" secondary={true} />
                                         </Link>

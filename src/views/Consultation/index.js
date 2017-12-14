@@ -113,7 +113,7 @@ class Consultation extends Component {
 								<MenuItem value='default' primaryText='Choose doctor' disabled />
 								{
 									this.state.reservationPhysician.map((element, index) => (
-										<MenuItem value={element.employee.seq} key={index} primaryText={element.employee.name} />
+										<MenuItem value={element.seq} key={index} primaryText={element.employee.name} />
 									))
 								}
 							</DropDownMenu>

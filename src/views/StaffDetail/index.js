@@ -19,13 +19,15 @@ class StaffDetail extends Component {
         this.state = {
             surgeonData: {},
             seq: props.match.params.seq,
+            type: props.match.params.type
         }
     }
     componentDidMount() {
-        fetchApiData(`/surgeon/${this.state.seq}`, 'GET')
+        fetchApiData(`/${this.state.type}/${this.state.seq}`, 'GET')
             .then(({ data }) => {
                 this.setState({ surgeonData: data })
             })
+        console.log()
     }
     mappingTitle(title) {
         switch (title) {
@@ -56,6 +58,27 @@ class StaffDetail extends Component {
             case 'tel':
                 return 'Tel'
                 break;
+            case 'code':
+                return 'Code'
+                break;
+            case 'category':
+                return 'Category'
+                break;
+            case 'specialNeeds':
+                return 'Special Needs'
+                break;
+            case 'anatomicalLocation':
+                return 'Anatomical Location'
+                break;
+                case 'annualSalary':
+                return 'Annual Salary'
+                break;
+                case 'grade':
+                return 'Grade'
+                break;
+                case 'year':
+                return 'Year'
+                break;
             default:
                 return title
                 break;
@@ -73,14 +96,24 @@ class StaffDetail extends Component {
                             if (key === 'employee') {
                                 const empData = data[key]
                                 return Object.keys(empData).map(empKey => {
-                                    if (empKey === 'seq') return ''
-                                    if (empKey === 'staffType' || empKey === 'disable') {
+                                    if (empKey === 'seq' || empKey === 'staffType' || empKey === 'disable') {
                                         return ''
                                     }
                                     else if (empKey === 'gender') {
                                         return <Item><span>{this.mappingTitle(empKey)}: </span>{empData[empKey] === 'F' ? 'Female' : 'Male'}</Item>
                                     }
                                     return <Item><span>{this.mappingTitle(empKey)}: </span>{empData[empKey]}</Item>
+                                })
+                            } else if (key === 'surgeryType') {
+                                const surgeryData = data[key]
+                                return Object.keys(surgeryData).map(surgeryKey => {
+                                    if (surgeryKey === 'seq' || surgeryKey === 'staffType' || surgeryKey === 'disable') {
+                                        return ''
+                                    }
+                                    else if (surgeryKey === 'gender') {
+                                        return <Item><span>{this.mappingTitle(surgeryKey)}: </span>{surgeryData[surgeryKey] === 'F' ? 'Female' : 'Male'}</Item>
+                                    }
+                                    return <Item><span>{this.mappingTitle(surgeryKey)}: </span>{surgeryData[surgeryKey]}</Item>
                                 })
                             }
                             else {

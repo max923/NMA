@@ -84,7 +84,6 @@ class Patient extends Component {
 			})
 	}
 	handleDropMenuIllness(event, index, value) {
-		console.log(event)
 		var copyData = Object.assign([], this.state.illnessRes);
 		copyData.push(value)
 		this.setState({
@@ -107,6 +106,18 @@ class Patient extends Component {
 			snackbarOpen: false,
 		});
 	};
+	removeIllnessItem (value) {
+		var copyData = Object.assign([], this.state.illnessRes);
+		this.setState({
+			illnessRes: _.uniqBy(_.remove(copyData, (n) => n !== value)),
+		})
+	}
+	removeAllergyItem (value) {
+		var copyData = Object.assign([], this.state.allergyRes);
+		this.setState({
+			allergyRes: _.uniqBy(_.remove(copyData, (n) => n !== value)),
+		})
+	}
 	render() {
 		const styles = {
 			errorStyle: {
@@ -239,8 +250,15 @@ class Patient extends Component {
 									}
 								</DropDownMenu>
 							</div>
-							<br />
-
+						</InputWrapper>
+						<InputWrapper>
+						{
+							this.state.illness.map(element => (
+								this.state.illnessRes.map(seq => (
+									element.seq === seq ? <Option onClick={() => this.removeIllnessItem(element.seq)}>{element.name}/</Option> : ''
+								))
+							))
+						}
 						</InputWrapper>
 						<InputWrapper>
 							<span>Allergies: </span>
@@ -259,6 +277,15 @@ class Patient extends Component {
 									}
 								</DropDownMenu>
 							</div>
+						</InputWrapper>
+						<InputWrapper>
+						{
+							this.state.allergy.map(element => (
+								this.state.allergyRes.map(seq => (
+									element.seq === seq ? <Option onClick={() => this.removeAllergyItem(element.seq)}>{element.name}/</Option> : ''
+								))
+							))
+						}
 						</InputWrapper>
 					</DialogContentWrapper>
 				</Dialog>
@@ -287,5 +314,8 @@ const InputWrapper = styled.div`
 		margin-right: 5px;
 	}
 `
-
+const Option = styled.p`
+	display: inline-block;
+	cursor: pointer;
+`
 

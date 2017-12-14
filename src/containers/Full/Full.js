@@ -38,7 +38,7 @@ class Full extends Component {
 								<Route path="/inpatient/available" name="Availablebed" component={AvailableBed} />
 								<Route path="/inpatient" name="Inpatient" component={Inpatient} />
 								<Route path="/surgery" name="surgery" component={Surgery} />
-								<Route path="/staff/:seq" name="staff" component={StaffDetail} />
+								<Route path="/staff/:type/:seq" name="staff" component={StaffDetail} />
 								<Route path="/staff" name="staff" component={Staff} />
 								<Redirect from="/" to="/patient" />
 							</Switch>
